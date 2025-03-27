@@ -9,9 +9,9 @@ pd.set_option('display.max_columns', 500)
 
 
 class ParserXLSX:
-    def __init__(self, year: int, file_name_pattern: str = 'files_to_parse/population_belarus_{}.xlsx'):
+    def __init__(self, year: int, file_name_pattern: str = 'population_belarus_{}.xlsx'):
         self.year = year
-        self.file_name = file_name_pattern.format(year)
+        self.file_name = 'files_to_parse/' + file_name_pattern.format(year)
 
         self.list_region = []
         self.dict_district_for_district_center = {
@@ -47,7 +47,7 @@ class ParserXLSX:
         self._open_xlsx_file()  # Worksheet
         ws_range, dict_range = self._get_preliminary_cell_range()
         dict_range_regions = self._get_range_for_regions(ws_range)
-        print(f'dict with start rows for regions:\t{dict_range_regions}')
+        # print(f'dict with start rows for regions:\t{dict_range_regions}')
         self._get_population_for_regions(dict_range, dict_range_regions)
         self.df['year'] = self.year
         return self.df
@@ -67,7 +67,7 @@ class ParserXLSX:
                         last_row = cell.row
                         range_ = f'A1:{last_column}{last_row}'
                         ws_range = self.ws[range_]
-                        print(f'preliminary range: {range_}')
+                        # print(f'preliminary range: {range_}')
                         return ws_range, {'l_c': last_column, 'l_r': last_row}
         raise Exception('the document format has changed significantly')
 
@@ -105,7 +105,7 @@ class ParserXLSX:
             except IndexError:
                 end_row = dict_range['l_r']
             range_str = f'A{start_row}:{dict_range['l_c']}{end_row}'
-            print(f'\tsection of Worksheet for the region "{region}": {range_str}')
+            # print(f'\tsection of Worksheet for the region "{region}": {range_str}')
             self.region = region
             ws_range = self.ws[range_str]
             self._processing_data_region(ws_range)
