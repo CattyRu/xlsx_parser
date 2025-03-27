@@ -33,16 +33,15 @@ class ParserXLSX:
 
         self.df = pd.DataFrame(
             {
-                'region': [],
-                'district': [],
-                'type_atu': [],
-                'name': [],
-                'population_all': [],
-                'population_city': [],
-                'population_village': []
+                'region': [],  # область
+                'district': [],  # район
+                'type_atu': [],  # тип административной единицы
+                'name': [],  # наименование
+                'population_all': [],  # население административной единицы
+                'population_city': [],  # городское население административной единицы
+                'population_village': []  # население деревень административной единицы
             }
         )
-        print(self.df)
 
     def parse(self) -> pd.DataFrame:
         self._open_xlsx_file()  # Worksheet
@@ -110,13 +109,15 @@ class ParserXLSX:
             self.region = region
             ws_range = self.ws[range_str]
             self._processing_data_region(ws_range)
+            print(f'\tworking with the region "{region}" has been completed')
 
     def _processing_data_region(self, ws_range: Worksheet) -> None:
         dict_column_row, num_columns = self._get_range_data_region(ws_range)
         dict_column_row = self._find_regions_name(dict_column_row, num_columns)
         self._read_and_write_data_region(dict_column_row, num_columns)
 
-    def _get_range_data_region(self, ws_range: Worksheet) -> (dict, int):
+    @staticmethod
+    def _get_range_data_region(ws_range: Worksheet) -> (dict, int):
         dict_column_row = {}
         num_all = 0
         num_city = 0
@@ -164,7 +165,6 @@ class ParserXLSX:
                 city_people.insert(1, None)
                 village_people.insert(1, None)
             if (len(r_names) == len(all_people) == len(city_people) == len(village_people)) is False:
-                print()
                 raise Exception(f'''Something went wrong: the number of localities and population values do not match
                     number of localities: {len(r_names)},
                     population in location: {len(all_people)},
@@ -172,13 +172,13 @@ class ParserXLSX:
                     rural population in location: {len(village_people)}
                 ''')
             if self.region == 'Минск':
-                new_df = self._read_dara_misk_and_country(r_names, all_people, city_people, village_people)
+                new_df = self._read_data_misk_and_country(r_names, all_people, city_people, village_people)
             else:
-                new_df = self._read_dara_in_row(r_names, all_people, city_people, village_people)
+                new_df = self._read_data_in_row(r_names, all_people, city_people, village_people)
             self.df = pd.concat([self.df, new_df], ignore_index=True)
-            print('new:\n', new_df)
 
-    def _read_dara_misk_and_country(self, r_names, all_people, city_people, village_people) -> pd.DataFrame:
+    def _read_data_misk_and_country(self, r_names: list, all_people: list, city_people: list, village_people: list
+                                    ) -> pd.DataFrame:
         dict_data = {
             'region': [],
             'district': [],
@@ -193,36 +193,34 @@ class ParserXLSX:
                 dict_data['type_atu'].append('страна')
                 dict_data['region'].append('-')
                 try:
-                    dict_data['population_all'].append(int(all_people[i].replace(' ', '')))
-                    dict_data['population_city'].append(int(city_people[i].replace(' ', '')))
-                    dict_data['population_village'].append(int(village_people[i].replace(' ', '')))
-                except AttributeError as e:
+                    dict_data['population_all'].append(self._find_number(all_people[i]))
+                    dict_data['population_city'].append(self._find_number(city_people[i]))
+                    dict_data['population_village'].append(self._find_number(village_people[i]))
+                except TypeError as e:
                     if 'NoneType' in str(e):
                         raise Exception('the document format has changed significantly')
                     else:
-                        raise AttributeError(f'Something went wrong: unexpected error.\n\t{e}')
+                        raise TypeError(f'Something went wrong: unexpected error.\n\t{e}')
                 dict_data['district'].append('-')
                 dict_data['name'].append('Республика Беларусь')
-            if r_names[i].lower() == 'г.минск':
+            elif r_names[i].lower() == 'г.минск':
                 dict_data['type_atu'].append('г.')
                 dict_data['region'].append('Минская область')
                 try:
-                    dict_data['population_all'].append(int(all_people[i].replace(' ', '')))
-                    dict_data['population_city'].append(int(city_people[i].replace(' ', '')))
-                except AttributeError as e:
+                    dict_data['population_all'].append(self._find_number(all_people[i]))
+                    dict_data['population_city'].append(self._find_number(city_people[i]))
+                    dict_data['population_village'].append(self._find_number(village_people[i]))
+                except TypeError as e:
                     if 'NoneType' in str(e):
                         raise Exception('the document format has changed significantly')
                     else:
                         raise AttributeError(f'Something went wrong: unexpected error.\n\t{e}')
-                try:
-                    dict_data['population_village'].append(int(village_people[i].replace(' ', '')))
-                except ValueError:
-                    dict_data['population_village'].append('-')
                 dict_data['district'].append(self.dict_district_for_district_center[(r_names[i].split('.'))[-1]])
                 dict_data['name'].append('Минск')
         return pd.DataFrame(dict_data)
 
-    def _read_dara_in_row(self, r_names, all_people, city_people, village_people) -> pd.DataFrame:
+    def _read_data_in_row(self, r_names: list, all_people: list, city_people: list, village_people: list
+                          ) -> pd.DataFrame:
         dict_data = {
             'region': [],
             'district': [],
@@ -261,7 +259,8 @@ class ParserXLSX:
             dict_data['population_village'].append(self._find_number(village_people[i]))
         return pd.DataFrame(dict_data)
 
-    def _find_number(self, str_: str) -> str:
+    @staticmethod
+    def _find_number(str_: str) -> str:
         var = findall(pattern=compile('\\d+'), string=str_)
         if var:
             return ''.join(var)
