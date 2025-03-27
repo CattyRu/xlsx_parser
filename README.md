@@ -41,7 +41,7 @@ python main.py
 MacOS
 
 ```
-python main.py
+python3 main.py
 ```
 
 #### Работа с файлом
