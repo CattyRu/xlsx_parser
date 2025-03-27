@@ -1,5 +1,5 @@
 import openpyxl
-from re import compile, findall, fullmatch
+from re import compile, findall
 import pandas as pd
 
 from openpyxl.worksheet.worksheet import Worksheet
