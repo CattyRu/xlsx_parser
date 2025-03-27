@@ -25,13 +25,13 @@ def get_available_years(file_name_pattern: str) -> list:
 
 if __name__ == '__main__':
     file_name_pattern = 'population_belarus_{year}.xlsx'
-    var = input('file name template is "{file_name_pattern}"? ' + 'The year (int) will be inserted in {}\ny/n\t')
+    var = input(f'file name template is "{file_name_pattern}"? ' + 'The year (int) will be inserted in {}\ny/n\t')
     while var != 'y':
         if var != 'n':
             var = input('please enter y or n\t')
         else:
             file_name_pattern = get_new_file_name_pattern()
-            var = input('file name template is "{file_name_pattern}"? ' + 'The year (int) will be inserted in {}\ny/n\t'
+            var = input(f'file name template is "{file_name_pattern}"? ' + 'The year (int) will be inserted in {}\ny/n\t'
                         )
     years = get_available_years(file_name_pattern)
     print(f'The following years are available: {', '.join(years)}')
